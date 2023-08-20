@@ -83,9 +83,6 @@ func Test_Downlaod(t *testing.T) {
 
 	filename := fmt.Sprintf("%s/download.parquet", dir)
 
-	filename = "test"
-	log.Println(len(expected))
-
 	server := goodServer(int64(len(expected)), expected)
 
 	downloader := NewParallelDownloader(1_000_000, http.DefaultClient, log.Default())
@@ -104,7 +101,6 @@ func Test_Downlaod(t *testing.T) {
 func Test_downloadSize(t *testing.T) {
 	const expected int64 = 500
 	server := goodServer(expected, nil)
-	// http call should be mock
 	downloader := NewParallelDownloader(1_000_000, http.DefaultClient, log.Default())
 
 	size, err := downloader.downloadSize(context.Background(), server.URL)

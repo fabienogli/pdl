@@ -3,12 +3,18 @@ package pdl
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
-	"sync"
 
 	"github.com/fabienogli/pdl/chunker"
 )
+
+type WrappedChunk struct {
+	id    int
+	chunk chunker.Chunk
+	err   error
+}
 
 type httpClient interface {
 	Do(req *http.Request) (*http.Response, error)
@@ -35,6 +41,18 @@ func NewParallelDownloader(chunkSize int64, httpClient httpClient, logger logger
 	}
 }
 
+func (p *ParallelDownloader) wrappedDownload(ctx context.Context, id int, chunk chunker.Chunk, c chan WrappedChunk, url, filename string) {
+	err := p.downloadPart(ctx, chunk.Start, chunk.End, url, filename)
+	if err != nil {
+		err = fmt.Errorf("chunks[%d]: error while downloading part starting %d, ending at %d: %w", id, chunk.Start, chunk.End, err)
+	}
+	t := WrappedChunk{
+		chunk: chunk,
+		err:   err,
+	}
+	c <- t
+}
+
 // Download downloads url into fileName
 func (p *ParallelDownloader) Download(ctx context.Context, url, fileName string) error {
 	size, err := p.downloadSize(ctx, url)
@@ -44,7 +62,8 @@ func (p *ParallelDownloader) Download(ctx context.Context, url, fileName string)
 	}
 	p.logger.Printf("info url=%s: size=%d MB", url, size/1_000_000)
 	chunks, err := chunker.Split(size, p.chunkSize)
-	p.logger.Printf("nb of Chunk: %d", len(chunks))
+	nbChunk := len(chunks)
+	p.logger.Printf("nb of Chunk: %d", nbChunk)
 	if err != nil {
 		return err
 	}
@@ -52,19 +71,17 @@ func (p *ParallelDownloader) Download(ctx context.Context, url, fileName string)
 	if err != nil {
 		return fmt.Errorf("error creating file: %w", err)
 	}
-	var wg sync.WaitGroup
-	wg.Add(len(chunks))
-	for i, c := range chunks {
-		go func(id int, chunk chunker.Chunk) {
-			defer wg.Done()
-			if err := p.downloadPart(ctx, chunk.Start, chunk.End, url, fileName); err != nil {
-				p.logger.Printf("chunks[%d]: error while downloading part starting %d, ending at %d: %v", id, chunk.Start, chunk.End, err)
-				return
-			}
-		}(i, c)
+	c := make(chan WrappedChunk)
+	for i, chunk := range chunks {
+		go p.wrappedDownload(ctx, i, chunk, c, url, fileName)
 	}
-	wg.Wait()
-	return nil
+	for i := 0; i < nbChunk; i++ {
+		chunk := <-c
+		if chunk.err != nil {
+			err = errors.Join(err, fmt.Errorf("%w", chunk.err))
+		}
+	}
+	return err
 }
 
 func (p *ParallelDownloader) downloadPart(ctx context.Context, start, end int64, url, fileName string) error {

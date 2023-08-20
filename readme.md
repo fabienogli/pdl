@@ -69,3 +69,8 @@ create a cli using the flag package
 To list every format for go
 go tool dist list
 GOOS=dist go build ...
+
+
+## Documentation
+// https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/HEAD
+// https://developer.mozilla.org/en-US/docs/Web/HTTP/Range_requests

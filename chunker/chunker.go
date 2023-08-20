@@ -3,10 +3,11 @@ package chunker
 import "fmt"
 
 type Chunk struct {
-	Start int64 `json:"start"` // field tags
+	Start int64
 	End   int64
 }
 
+// Split return an array of Chunk of the len of chunkSize
 func Split(size, chunkSize int64) ([]Chunk, error) {
 	if size < 0 || chunkSize <= 0 {
 		return nil, fmt.Errorf("size=%d, chunkSize=%d", size, chunkSize)

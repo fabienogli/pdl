@@ -2,7 +2,6 @@ package pdl
 
 import (
 	"fmt"
-	"log"
 	"os"
 )
 
@@ -21,9 +20,7 @@ func writeAt(fileName string, offset int64, data []byte) error {
 		return fmt.Errorf("err when os.OpenFile: %w", err)
 	}
 	defer f.Close()
-	log.Printf("len %d", len(data))
-	n, err := f.WriteAt(data, offset)
-	log.Printf("wrote %d", n)
+	_, err = f.WriteAt(data, offset)
 	if err != nil {
 		return fmt.Errorf("err when f.WriteAt: %w", err)
 	}

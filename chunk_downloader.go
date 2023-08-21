@@ -5,7 +5,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 	"net/http"
 
 	"github.com/fabienogli/pdl/chunker"
@@ -34,12 +33,10 @@ func newChunkError(chunk chunker.Chunk, err error) chunkError {
 }
 
 func (p *simpleChunkDownloader) downloadPart(ctx context.Context, start, end int64, url, fileName string) error {
-	log.Println("ICI")
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return fmt.Errorf("err when http.NewRequestWithContext: %w", err)
 	}
-	log.Println("Apres new request")
 
 	req.Header.Set("Range", fmt.Sprintf("bytes=%d-%d", start, end))
 	resp, err := p.httpClient.Do(req)
@@ -47,7 +44,6 @@ func (p *simpleChunkDownloader) downloadPart(ctx context.Context, start, end int
 	if err != nil {
 		return fmt.Errorf("err when downloading: %w", err)
 	}
-	log.Println("Apres Do")
 
 	defer resp.Body.Close()
 	buf := bytes.NewBuffer([]byte{})

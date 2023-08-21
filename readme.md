@@ -74,3 +74,5 @@ GOOS=dist go build ...
 ## Documentation
 // https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/HEAD
 // https://developer.mozilla.org/en-US/docs/Web/HTTP/Range_requests
+
+Add a retry function

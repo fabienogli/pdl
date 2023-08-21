@@ -3,7 +3,6 @@ package pdl
 import (
 	"context"
 	"fmt"
-	"log"
 	"net/http"
 
 	"github.com/fabienogli/pdl/chunker"
@@ -32,7 +31,6 @@ type ParallelDownloader struct {
 // NewParallelDownloader instatiate a ParallelDownloader
 // chunkSize in Byte
 func NewParallelDownloader(chunkSize int64, httpClient httpClient, logger logger, chunkDownloader chunkDownloader) *ParallelDownloader {
-	log.Println(httpClient)
 	return &ParallelDownloader{
 		chunkSize:       chunkSize,
 		httpClient:      httpClient,
@@ -72,7 +70,6 @@ func (p *ParallelDownloader) downloadSize(ctx context.Context, url string) (int6
 	if err != nil {
 		return 0, fmt.Errorf("err when http.NewRequestWithContext: %w", err)
 	}
-	log.Println(p.httpClient)
 	resp, err := p.httpClient.Do(req)
 	if err != nil {
 		return 0, fmt.Errorf("err when doing Head request: %w", err)

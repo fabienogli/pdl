@@ -21,14 +21,13 @@ func NewSimpleChunkDownloader(httpClient httpClient) *simpleChunkDownloader {
 	}
 }
 
-type ChunkError struct {
-	id    int
+type chunkError struct {
 	chunk chunker.Chunk
 	err   error
 }
 
-func NewChunkError(chunk chunker.Chunk, err error) ChunkError {
-	return ChunkError{
+func newChunkError(chunk chunker.Chunk, err error) chunkError {
+	return chunkError{
 		chunk: chunk,
 		err:   err,
 	}
@@ -63,17 +62,17 @@ func (p *simpleChunkDownloader) downloadPart(ctx context.Context, start, end int
 	return nil
 }
 
-func (p *simpleChunkDownloader) wrappedDownload(ctx context.Context, id int, chunk chunker.Chunk, c chan ChunkError, url, filename string) {
+func (p *simpleChunkDownloader) wrappedDownload(ctx context.Context, id int, chunk chunker.Chunk, c chan chunkError, url, filename string) {
 	err := p.downloadPart(ctx, chunk.Start, chunk.End, url, filename)
 	if err != nil {
 		err = fmt.Errorf("chunks[%d]: error while downloading part starting %d, ending at %d: %w", id, chunk.Start, chunk.End, err)
 	}
-	c <- NewChunkError(chunk, err)
+	c <- newChunkError(chunk, err)
 }
 
 func (p *simpleChunkDownloader) Download(ctx context.Context, url, fileName string, chunks []chunker.Chunk) ([]chunker.Chunk, error) {
 	var err error
-	c := make(chan ChunkError)
+	c := make(chan chunkError)
 	for i, chunk := range chunks {
 		go p.wrappedDownload(ctx, i, chunk, c, url, fileName)
 	}

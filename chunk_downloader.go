@@ -89,14 +89,20 @@ func (p *simpleChunkDownloader) Download(ctx context.Context, url, fileName stri
 }
 
 type ChunkDownloaderUntilFailure struct {
-	chunkDownloaderStrategy chunkDownloader
+	chunkDownloader chunkDownloader
+}
+
+func NewChunkDownloaderUntilFailure(chunkDownloader chunkDownloader) *ChunkDownloaderUntilFailure {
+	return &ChunkDownloaderUntilFailure{
+		chunkDownloader: chunkDownloader,
+	}
 }
 
 func (c *ChunkDownloaderUntilFailure) Download(ctx context.Context, url, fileName string, chunks []chunker.Chunk) ([]chunker.Chunk, error) {
 	if ctx.Err() != nil {
 		return chunks, fmt.Errorf("err ctx: %w", ctx.Err())
 	}
-	leftChunks, err := c.chunkDownloaderStrategy.Download(ctx, url, fileName, chunks)
+	leftChunks, err := c.chunkDownloader.Download(ctx, url, fileName, chunks)
 	if err != nil {
 		return c.Download(ctx, url, fileName, leftChunks)
 	}

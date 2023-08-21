@@ -97,7 +97,7 @@ func TestChunkDownloaderUntilFailure_Download(t *testing.T) {
 				cancelFunc()
 			}
 			c := &ChunkDownloaderUntilFailure{
-				chunkDownloaderStrategy: tt.fields.chunkDownloader,
+				chunkDownloader: tt.fields.chunkDownloader,
 			}
 			_, err := c.Download(ctx, tt.args.url, tt.args.fileName, tt.args.chunks)
 			assert.Equal(t, tt.wantErr, err != nil, fmt.Sprintf("ChunkDownloaderUntilFailure.Download() error = %v, wantErr %v", err, tt.wantErr))

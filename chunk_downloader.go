@@ -85,11 +85,13 @@ func (p *simpleChunkDownloader) Download(ctx context.Context, url, fileName stri
 
 type ChunkDownloaderUntilFailure struct {
 	chunkDownloader chunkDownloader
+	logger          logger
 }
 
-func NewChunkDownloaderUntilFailure(chunkDownloader chunkDownloader) *ChunkDownloaderUntilFailure {
+func NewChunkDownloaderUntilFailure(chunkDownloader chunkDownloader, logger logger) *ChunkDownloaderUntilFailure {
 	return &ChunkDownloaderUntilFailure{
 		chunkDownloader: chunkDownloader,
+		logger:          logger,
 	}
 }
 
@@ -99,6 +101,7 @@ func (c *ChunkDownloaderUntilFailure) Download(ctx context.Context, url, fileNam
 	}
 	leftChunks, err := c.chunkDownloader.Download(ctx, url, fileName, chunks)
 	if err != nil {
+		c.logger.Printf("Retrying %d chunks for %s", len(leftChunks), fileName)
 		return c.Download(ctx, url, fileName, leftChunks)
 	}
 	return nil, nil

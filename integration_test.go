@@ -85,7 +85,11 @@ func Test_Downlaod(t *testing.T) {
 
 	server := goodServer(int64(len(expected)), expected)
 
-	downloader := NewParallelDownloader(1_000_000, http.DefaultClient, log.Default())
+	httpClient := &http.Client{}
+
+	chunkDownLoader := NewSimpleChunkDownloader(httpClient)
+
+	downloader := NewParallelDownloader(1_000_000, httpClient, log.Default(), chunkDownLoader)
 
 	err = downloader.Download(context.Background(), server.URL, filename)
 	require.NoError(t, err)
@@ -101,7 +105,7 @@ func Test_Downlaod(t *testing.T) {
 func Test_downloadSize(t *testing.T) {
 	const expected int64 = 500
 	server := goodServer(expected, nil)
-	downloader := NewParallelDownloader(1_000_000, http.DefaultClient, log.Default())
+	downloader := NewParallelDownloader(1_000_000, http.DefaultClient, log.Default(), nil)
 
 	size, err := downloader.downloadSize(context.Background(), server.URL)
 	require.NoErrorf(t, err, server.URL)
@@ -114,7 +118,12 @@ func Fuzz_downloadSize(f *testing.F) {
 	f.Fuzz(func(t *testing.T, expected int64) {
 		server := goodServer(expected, nil)
 		defer server.Close()
-		downloader := NewParallelDownloader(1_000_000, http.DefaultClient, log.Default())
+
+		httpClient := http.DefaultClient
+
+		chunkDownLoader := NewSimpleChunkDownloader(httpClient)
+
+		downloader := NewParallelDownloader(1_000_000, httpClient, log.Default(), chunkDownLoader)
 
 		size, err := downloader.downloadSize(context.Background(), server.URL)
 		require.NoErrorf(t, err, server.URL)

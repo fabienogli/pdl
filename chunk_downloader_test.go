@@ -3,6 +3,7 @@ package pdl
 import (
 	"context"
 	"fmt"
+	"log"
 	"testing"
 	"time"
 
@@ -98,6 +99,7 @@ func TestChunkDownloaderUntilFailure_Download(t *testing.T) {
 			}
 			c := &ChunkDownloaderUntilFailure{
 				chunkDownloader: tt.fields.chunkDownloader,
+				logger:          log.Default(),
 			}
 			_, err := c.Download(ctx, tt.args.url, tt.args.fileName, tt.args.chunks)
 			assert.Equal(t, tt.wantErr, err != nil, fmt.Sprintf("ChunkDownloaderUntilFailure.Download() error = %v, wantErr %v", err, tt.wantErr))

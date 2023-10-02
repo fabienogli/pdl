@@ -113,9 +113,10 @@ func Test_downloadSize(t *testing.T) {
 }
 
 func Fuzz_downloadSize(f *testing.F) {
-	log.Println("fuzzing")
-
 	f.Fuzz(func(t *testing.T, expected int64) {
+		if expected < 0 {
+			expected = -expected
+		}
 		server := goodServer(expected, nil)
 		defer server.Close()
 

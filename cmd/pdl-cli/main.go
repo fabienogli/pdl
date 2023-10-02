@@ -31,13 +31,14 @@ func extractFilenameFromURL(url string) (string, error) {
 	return split[len(split)-1], nil
 }
 
-func download(timeoutInSecond, chunkSizeInMB int64, url, outFile string) error {
+func download(timeoutInSecond, chunkSizeInMB int64, url, outFile string, logger log.Logger) error {
 	timeoutDuration := time.Duration(timeoutInSecond) * time.Second
 	ctx, cancel := context.WithTimeout(context.Background(), timeoutDuration)
 	defer cancel()
 	httpClient := &http.Client{}
 	chunkDownloader := pdl.NewSimpleChunkDownloader(httpClient)
-	downloader := pdl.NewParallelDownloader(chunkSizeInMB*1_000_000, http.DefaultClient, log.Default(), chunkDownloader)
+	chunkDownloaderUntilFailure := pdl.NewChunkDownloaderUntilFailure(chunkDownloader, &logger)
+	downloader := pdl.NewParallelDownloader(chunkSizeInMB*1_000_000, httpClient, &logger, chunkDownloaderUntilFailure)
 	err := downloader.Download(ctx, url, outFile)
 	if err != nil {
 		return fmt.Errorf("err downloader.Download: %w", err)
@@ -69,11 +70,12 @@ It will chunk the file in several files
 				err = errors.Join(err, fmt.Errorf("err extractFilenameFromURL: %w", errFromLoop))
 				continue
 			}
-			errFromLoop = download(timeout, chunkSizeInMB, url, outFile)
+			errFromLoop = download(timeout, chunkSizeInMB, url, outFile, *log.Default())
 			if errFromLoop != nil {
 				err = errors.Join(err, fmt.Errorf("err download: %w", errFromLoop))
 				continue
 			}
+			cmd.Printf("File %s was download\n", outFile)
 		}
 		return err
 	},
@@ -85,7 +87,6 @@ func init() {
 }
 
 func main() {
-
 	err := rootCmd.Execute()
 	if err != nil {
 		os.Exit(1)

@@ -1,14 +1,20 @@
-# PDL
-PDL (Parallel Downloader) is a CLI library that will download an URL.
+# PDL (Parallel Downloader)  
 
-## Concept
-PDL will split the files in several chunks and download it concurrently.  
-It was an experiment to understand several standard libraries like context, http, the concept of chan and its error handling.
+PDL is a CLI library for downloading files from a URL with parallel execution.  
 
+## Concept  
 
-## PDL-CLI
-If you want to use this package as a cli
-```go
+PDL splits files into multiple chunks and downloads them concurrently. This project serves as an experiment to explore various Go standard libraries, including:  
+
+- `context` for managing execution lifecycles  
+- `http` for handling requests  
+- Channels (`chan`) for concurrency and error handling  
+
+## Using PDL-CLI  
+
+You can use this package as a CLI tool:  
+
+```sh
 go run github.com/fabienogli/pdl/cmd/pdl-cli --help
 ```
 
